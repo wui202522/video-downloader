@@ -269,7 +269,7 @@ quality_selection_template = '''
 
 <form method="post">
   <label for="videoTitleBox">Video Title:</label>
-  <textarea id="videoTitle" name="videoTitleBox" rows="4" readonly
+  <textarea id="videoTitle" name="videoTitleBox" rows="6" readonly
     style="width: 100%; max-width: 600px; font-size: 1rem; padding: 8px; border-radius: 6px; border: 1px solid #444; background: #2c2c2c; color: #eee; resize: vertical; box-shadow: 0 0 8px rgba(0,0,0,0.3); margin-bottom: 12px;">{{ title }}</textarea>
   <button type="button" onclick="copyTitle()" style="margin-bottom: 20px; width: 100%; max-width: 600px; padding: 10px; font-weight: bold; background: #0d6efd; color: white; border: none; border-radius: 6px; cursor: pointer;">
     📋 Copy Full Title
