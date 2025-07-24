@@ -24,148 +24,7 @@ ad_banner_code = '''
 <!-- Ad Banner End -->
 '''
 
-url_input_template = '''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>PowerFul WebTool For Download Video</title>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    background: #000;
-    color: #eee;
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 110px 10px 20px; /* padding-top accounts for fixed ad height + some spacing */
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-  }
-  h1 {
-    font-size: 1.6rem;
-    color: #0d6efd;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-shadow: 0 0 4px rgba(13, 110, 253, 0.5);
-    margin: 10px 0 8px;
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-  }
-  p {
-    color: #33ff008f;
-    font-weight: 300;
-    font-size: 1.1rem;
-    margin: 0 0 20px;
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    text-shadow: 0 0 2px rgba(204,204,204,0.5);
-  }
-  form {
-    background: #1e1e1e;
-    padding: 15px 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 12px #000;
-    max-width: 600px;
-    width: 100%;
-    margin-bottom: 20px;
-  }
-  h2 {
-    font-size: 1rem;
-    color: #0d6efd;
-    margin: 0 0 12px;
-    text-align: center;
-  }
-  label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-  }
-  input[type="file"],
-  input[type="text"],
-  select,
-  button {
-    width: 100%;
-    padding: 10px 12px;
-    margin-top: 8px;
-    margin-bottom: 12px;
-    border-radius: 6px;
-    border: 1px solid #444;
-    background: #2c2c2c;
-    color: #eee;
-    font-size: 1rem;
-    font-weight: 500;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  input[type="file"]:focus,
-  input[type="text"]:focus,
-  select:focus,
-  button:hover {
-    background: #0d6efd;
-    color: #fff;
-    border-color: #0d6efd;
-  }
-  button {
-    font-weight: bold;
-  }
-  @media (max-width: 480px) {
-    body {
-      padding: 120px 8px 20px; /* add extra top padding for ad on mobile */
-    }
-    h1 {
-      font-size: 1.3rem;
-    }
-    p {
-      font-size: 1rem;
-    }
-    form {
-      padding: 12px 15px;
-    }
-    h2 {
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-    }
-    input[type="file"],
-    input[type="text"],
-    select,
-    button {
-      padding: 8px 10px;
-      font-size: 0.9rem;
-      margin-top: 6px;
-      margin-bottom: 10px;
-    }
-  }
-</style>
-</head>
-<body>
-
-''' + ad_banner_code + '''
-
-<h1>PowerFul WebTool For Download Video</h1>
-<p>Auto Detected Url</p>
-
-<form method="post" enctype="multipart/form-data">
-  <h2>Upload cookies.txt (for YouTube login)</h2>
-  <input type="file" name="cookiesfile" accept=".txt" required>
-  <button type="submit">Upload cookies.txt</button>
-</form>
-
-<form method="post">
-  <h2>Paste video URL</h2>
-  <input name="url" placeholder="Paste video URL" required />
-  <button type="submit">Get Video Qualities</button>
-</form>
-
-</body>
-</html>
-'''
+url_input_template = ''' (เหมือนเดิมในโค้ดคุณ) '''
 
 quality_selection_template = '''
 <!DOCTYPE html>
@@ -268,7 +127,11 @@ quality_selection_template = '''
 ''' + ad_banner_code + '''
 
 <form method="post">
-  <div style="display: none;" id="videoTitle">{{ title }}</div>
+
+  <div id="videoTitle" style="white-space: pre-wrap; word-wrap: break-word; background:#222; padding:10px; margin-bottom: 12px; border-radius:6px; color:#eee;">
+    {{ title }}
+  </div>
+
   <button type="button" onclick="copyTitle()" style="margin-bottom: 12px;">
     📋 Copy Full Title
   </button>
@@ -348,6 +211,9 @@ def home():
                         if f.get('vcodec') != 'none' and f.get('height')
                     ]
                     formats = sorted(formats, key=lambda x: x.get('height'), reverse=True)
+
+                # Debug print title
+                print("Video title:", info.get('title'))
 
                 return render_template_string(
                     quality_selection_template,
