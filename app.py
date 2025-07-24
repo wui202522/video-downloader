@@ -127,7 +127,8 @@ quality_selection_template = '''
             box-shadow: 0 0 12px #000;
         }
         h2 {
-            font-size: 1.1rem; margin-bottom: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
             color: #0d6efd;
         }
         select, button {
@@ -141,7 +142,7 @@ quality_selection_template = '''
 </head>
 <body>
     <form method="post">
-        <h2>🎬 {{ title }}</h2>
+        <h2> {{ title }}</h2>
         <input type="hidden" name="url" value="{{ url }}">
         <label for="format_id">Choose Video Quality:</label>
         <select name="format_id" required>
