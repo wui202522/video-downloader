@@ -268,10 +268,10 @@ quality_selection_template = '''
 ''' + ad_banner_code + '''
 
 <form method="post">
-<div style="display: none;" id="videoTitle">{{ title }}</div>
-<button type="button" onclick="copyTitle()" style="margin-bottom: 12px;">
-  📋 Copy Full Title
-</button>
+  <div style="display: none;" id="videoTitle">{{ title }}</div>
+  <button type="button" onclick="copyTitle()" style="margin-bottom: 12px;">
+    📋 Copy Full Title
+  </button>
 
 <script>
   function copyTitle() {
@@ -283,6 +283,7 @@ quality_selection_template = '''
     });
   }
 </script>
+
   <input type="hidden" name="url" value="{{ url }}">
   <label for="format_id">Choose Video Quality:</label>
   <select name="format_id" required>
