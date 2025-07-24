@@ -3,9 +3,26 @@ import yt_dlp
 import os
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './'  # Save cookies.txt here
+app.config['UPLOAD_FOLDER'] = './'
 
 VIDEO_INFO = {}
+
+ad_banner_code = '''
+<!-- Ad Banner Start -->
+<div style="position: fixed; top: 0; left: 0; width: 100%; height: 90px; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center;">
+  <script type="text/javascript">
+    atOptions = {
+      'key' : 'ba09d112d910a6f2a95c3ae735a9ff9b',
+      'format' : 'iframe',
+      'height' : 90,
+      'width' : 728,
+      'params' : {}
+    };
+  </script>
+  <script type="text/javascript" src="//testtubeabilityinvited.com/ba09d112d910a6f2a95c3ae735a9ff9b/invoke.js"></script>
+</div>
+<!-- Ad Banner End -->
+'''
 
 url_input_template = '''
 <!DOCTYPE html>
@@ -21,7 +38,7 @@ url_input_template = '''
     color: #eee;
     font-family: 'Arial', sans-serif;
     margin: 0;
-    padding: 20px 10px;
+    padding: 110px 10px 20px; /* padding-top accounts for fixed ad height + some spacing */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -100,7 +117,7 @@ url_input_template = '''
   }
   @media (max-width: 480px) {
     body {
-      padding: 15px 8px;
+      padding: 120px 8px 20px; /* add extra top padding for ad on mobile */
     }
     h1 {
       font-size: 1.3rem;
@@ -128,6 +145,8 @@ url_input_template = '''
 </style>
 </head>
 <body>
+
+''' + ad_banner_code + '''
 
 <h1>PowerFul WebTool For Download Video</h1>
 <p>Auto Detected Url</p>
@@ -162,7 +181,7 @@ quality_selection_template = '''
     color: #eee;
     font-family: 'Arial', sans-serif;
     margin: 0;
-    padding: 20px 10px;
+    padding: 110px 10px 20px; /* padding-top for fixed ad */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -224,7 +243,7 @@ quality_selection_template = '''
   }
   @media (max-width: 480px) {
     body {
-      padding: 15px 8px;
+      padding: 120px 8px 20px;
     }
     form {
       padding: 12px 15px;
@@ -245,6 +264,8 @@ quality_selection_template = '''
 </style>
 </head>
 <body>
+
+''' + ad_banner_code + '''
 
 <form method="post">
   <h2>{{ title }}</h2>
@@ -294,7 +315,6 @@ def home():
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([info['webpage_url']])
 
-                # Find the downloaded file by video_id prefix
                 for file in os.listdir("downloads"):
                     if file.startswith(video_id):
                         return send_file(os.path.join("downloads", file), as_attachment=True)
