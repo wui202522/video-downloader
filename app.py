@@ -1,112 +1,149 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, render_template_string
 import yt_dlp
 import os
 
 app = Flask(__name__)
+VIDEO_INFO = {}
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        url = request.form['url']
-        os.makedirs("downloads", exist_ok=True)
+        url = request.form.get('url')
+        format_id = request.form.get('format_id')
 
-        ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
-            'outtmpl': 'downloads/%(title)s.%(ext)s',
-            'cookiefile': 'cookies.txt',
-        }
+        # Step 3: Download selected format
+        if format_id and 'info' in VIDEO_INFO:
+            info = VIDEO_INFO['info']
+            video_id = info.get('id')
+            ext = 'mp4'  # Default extension
+            os.makedirs("downloads", exist_ok=True)
 
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info_dict = ydl.extract_info(url, download=True)
-                filename = ydl.prepare_filename(info_dict)
+            ydl_opts = {
+                'format': format_id,
+                'outtmpl': f'downloads/{video_id}.%(ext)s',  # ✅ Use video ID
+                'cookiefile': 'cookies.txt',
+            }
 
-            if os.path.exists(filename):
-                return send_file(filename, as_attachment=True)
-            else:
-                return "❌ Error: Downloaded file not found."
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    result = ydl.download([info['webpage_url']])
 
-        except Exception as e:
-            return f"❌ Error: {str(e)}"
+                # Find downloaded file
+                for file in os.listdir("downloads"):
+                    if file.startswith(video_id):
+                        return send_file(os.path.join("downloads", file), as_attachment=True)
 
-    # For GET requests, serve the nice mobile UI
-    return '''
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                return "❌ File not found after download."
+
+            except Exception as e:
+                return f"❌ Error during download: {str(e)}"
+
+        # Step 2: Extract available formats
+        elif url:
+            try:
+                with yt_dlp.YoutubeDL({'cookiefile': 'cookies.txt'}) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    VIDEO_INFO['info'] = info
+                    formats = [
+                        f for f in info['formats']
+                        if f.get('vcodec') != 'none' and f.get('height')
+                    ]
+                    formats = sorted(formats, key=lambda x: x.get('height'), reverse=True)
+
+                return render_template_string(quality_selection_template, formats=formats, url=url, title=info.get('title'))
+
+            except Exception as e:
+                return f"❌ Error extracting formats: {str(e)}"
+
+    # Step 1: Show form
+    return render_template_string(url_input_template)
+
+# Step 1 UI
+url_input_template = '''
+<!DOCTYPE html>
+<html>
+<head>
     <title>Video Downloader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body {
-        background: #121212;
-        color: #eee;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-        padding: 20px;
-      }
-      form {
-        background: #1e1e1e;
-        padding: 25px 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.6);
-        width: 100%;
-        max-width: 400px;
-        box-sizing: border-box;
-      }
-      input[name="url"] {
-        width: 100%;
-        padding: 14px 16px;
-        margin-bottom: 18px;
-        font-size: 1.1rem;
-        border-radius: 8px;
-        border: none;
-        outline: none;
-        box-sizing: border-box;
-        background: #2a2a2a;
-        color: #eee;
-      }
-      input[name="url"]::placeholder {
-        color: #bbb;
-      }
-      input[type="submit"] {
-        width: 100%;
-        background: #0d6efd;
-        color: white;
-        padding: 14px 0;
-        font-size: 1.2rem;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        font-weight: 600;
-      }
-      input[type="submit"]:hover {
-        background: #0b5ed7;
-      }
-      @media (max-width: 400px) {
+        body {
+            background: #121212; color: #eee;
+            font-family: sans-serif; display: flex;
+            align-items: center; justify-content: center;
+            height: 100vh; margin: 0; padding: 20px;
+        }
         form {
-          padding: 20px 15px;
+            background: #1e1e1e; padding: 20px;
+            border-radius: 10px; width: 100%;
+            max-width: 400px; box-shadow: 0 0 12px #000;
         }
-        input[name="url"], input[type="submit"] {
-          font-size: 1rem;
-          padding: 12px 14px;
+        input, button {
+            width: 100%; padding: 12px;
+            margin-top: 12px; border-radius: 6px;
+            border: none; font-size: 1rem;
         }
-      }
+        input { background: #333; color: #fff; }
+        button { background: #0d6efd; color: #fff; font-weight: bold; }
     </style>
-    </head>
-    <body>
-      <form method="post" autocomplete="off">
-        <input name="url" placeholder="Paste video URL here" required />
-        <input type="submit" value="Download" />
-      </form>
-    </body>
-    </html>
-    '''
+</head>
+<body>
+    <form method="post">
+        <input name="url" placeholder="Paste video URL" required />
+        <button type="submit">Get Video Qualities</button>
+    </form>
+</body>
+</html>
+'''
+
+# Step 2 UI (with video title shown)
+quality_selection_template = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose Quality</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body {
+            background: #121212; color: #eee;
+            font-family: sans-serif; display: flex;
+            align-items: center; justify-content: center;
+            height: 100vh; margin: 0; padding: 20px;
+        }
+        form {
+            background: #1e1e1e; padding: 20px;
+            border-radius: 10px; width: 100%;
+            max-width: 400px; box-shadow: 0 0 12px #000;
+        }
+        h2 {
+            font-size: 1.1rem; margin-bottom: 10px;
+            color: #0d6efd;
+        }
+        select, button {
+            width: 100%; padding: 12px;
+            margin-top: 12px; border-radius: 6px;
+            border: none; font-size: 1rem;
+        }
+        select { background: #333; color: #fff; }
+        button { background: #0d6efd; color: #fff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <form method="post">
+        <h2>🎬 {{ title }}</h2>
+        <input type="hidden" name="url" value="{{ url }}">
+        <label for="format_id">Choose Video Quality:</label>
+        <select name="format_id" required>
+            {% for f in formats %}
+                <option value="{{ f.format_id }}">
+                    {{ f.resolution or f.height|string + 'p' }} - {{ f.ext }} - {{ (f.filesize or 0) // 1024 // 1024 }}MB
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Download</button>
+    </form>
+</body>
+</html>
+'''
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
