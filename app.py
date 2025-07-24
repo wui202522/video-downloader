@@ -11,15 +11,18 @@ def home():
         os.makedirs("downloads", exist_ok=True)
 
         ydl_opts = {
-            'format': 'best',
+            'format': 'bestvideo+bestaudio/best',
             'outtmpl': 'downloads/%(title)s.%(ext)s',
+            'cookiefile': 'cookies.txt',  # ✅ Use cookies to bypass bot checks
         }
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            return "✅ Download complete!"
+        except Exception as e:
+            return f"❌ Error: {str(e)}"
 
-        return "✅ Download complete!"
-    
     return '''
         <form method="post">
             <input name="url" placeholder="Paste video URL here">
